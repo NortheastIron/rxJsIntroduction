@@ -1,5 +1,5 @@
 import { interval } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, scan, take } from 'rxjs/operators';
 
 const btn = document.getElementById('interval');
 const rxjsBtn = document.getElementById('rxjs');
@@ -36,9 +36,19 @@ btn.addEventListener('click', () => {
 });
 
 rxjsBtn.addEventListener('click', () => {
-  interval(1000).pipe().subscribe((result) => {
-    console.log('result', result);
+  rxjsBtn.disabled = true;
 
-    display.textContent = result;
-  });
+  interval(1000).pipe(
+    take(people.length),
+    filter(i => people[i].age >= 18),
+    map(i => people[i].name),
+    scan((acc, name) => acc.concat(name), [])
+  ).subscribe(
+    {
+      next: (result) => {
+        console.log('result', result);
+        display.textContent = result.join(' ');
+      },
+      complete: () => rxjsBtn.disabled = false
+    });
 });
